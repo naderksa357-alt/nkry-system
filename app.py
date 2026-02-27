@@ -2,36 +2,38 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 import os
 
-# تعريف التطبيق أولاً
+# تعريف التطبيق أولاً (مهم)
 app = FastAPI()
 
 
-# الصفحة الرئيسية
 @app.get("/")
 def home():
     return {"message": "NKRY system is running"}
 
 
-# صفحة الطلب (لإنستقرام / واتساب)
 @app.get("/order", response_class=HTMLResponse)
-def order_form():
+def order():
     return """
     <h2>طلب منتج NKRY</h2>
-    <form action="https://wa.me/966502888357" method="get">
+    <form action="https://wa.me/966502888357">
         الاسم:<br>
-        <input type="text" name="name"><br><br>
+        <input type="text" name="text"><br><br>
+
         الجوال:<br>
-        <input type="text" name="phone"><br><br>
+        <input type="text" name="text"><br><br>
+
         المدينة:<br>
-        <input type="text" name="city"><br><br>
+        <input type="text" name="text"><br><br>
+
         المنتج:<br>
-        <input type="text" name="product"><br><br>
-        <button type="submit">إرسال عبر واتساب</button>
+        <input type="text" name="text"><br><br>
+
+        <button type="submit">إرسال الطلب عبر واتساب</button>
     </form>
     """
 
 
-# تشغيل Railway
+# تشغيل على Railway
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
