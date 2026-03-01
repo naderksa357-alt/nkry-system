@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 import os
 
-# إنشاء التطبيق أولاً
+# إنشاء التطبيق
 app = FastAPI()
 
 # الصفحة الرئيسية
@@ -15,7 +15,7 @@ def home():
 def order():
     return """
     <h1>NKRY Order Page</h1>
-    <p>The system is working successfully</p>
+    <p>System is working successfully</p>
     """
 
 # تشغيل السيرفر
@@ -23,3 +23,4 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+    
