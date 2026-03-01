@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Form
 import os
 
-# لازم يكون في الأعلى
 app = FastAPI()
 
 
