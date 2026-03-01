@@ -1,64 +1,18 @@
-from fastapi import FastAPI, Form
-from fastapi.responses import HTMLResponse
-import os
-
-app = FastAPI()
-
-
-# الصفحة الرئيسية
-@app.get("/", response_class=HTMLResponse)
-def home():
-    return """
-    <h1>NKRY Order System</h1>
-    <a href="/order">Create Order</a>
-    """
-
-
-# صفحة نموذج الطلب
-@app.get("/order", response_class=HTMLResponse)
-def order_form():
-    return """
-    <h2>New Order</h2>
-    <form action="/submit-order" method="post">
-        Name:<br>
-        <input type="text" name="name"><br>
-
-        Phone:<br>
-        <input type="text" name="phone"><br>
-
-        City:<br>
-        <input type="text" name="city"><br>
-
-        Product:<br>
-        <input type="text" name="product"><br><br>
-
-        <button type="submit">Send Order</button>
-    </form>
-    """
-
-
-# استقبال الطلب
-@app.post("/submit-order")
-def submit_order(
-    name: str = Form(...),
-    phone: str = Form(...),
-    city: str = Form(...),
-    product: str = Form(...)
-):
-    print("New Order:", name, phone, city, product)
-
-    return {
-        "status": "Order received",
-        "name": name,
-        "phone": phone,
-        "city": city,
-        "product": product
-    }
-
-
-# تشغيل السيرفر (مهم لـ Railway)
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+@app.route('/moyasar-webhook', methods=['POST'])
+def moyasar_webhook():
+    data = request.json
+    # التأكد من نجاح الدفع
+    if data['status'] == 'paid':
+        order_id = data['metadata']['order_id'] # رقم الطلب المخزن
+        
+        # 1. تحديث حالة الطلب في Supabase إلى (تم الدفع - جارِ التنفيذ)
+        supabase.table("orders_agents").update({"status": "Paid"}).eq("id", order_id).execute()
+        
+        # 2. إرسال رسالة واتساب تلقائية للعميل عبر Twilio
+        send_whatsapp_msg(data['metadata']['phone'], "تم استلام مبلغك بنجاح! فريق NKRY بدأ الآن في تجهيز طلبك.")
+        
+        # 3. إرسال إيميل رسمي للعميل يحتوي على الفاتورة وتفاصيل الخشب والمقاسات
+        send_official_email(data['metadata']['email'], "تأكيد طلب أثاث - NKRY")
+        
+    return "OK", 200
     
