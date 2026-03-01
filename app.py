@@ -67,3 +67,24 @@ def submit_order(
         "status": "Order saved",
         "name": name
     }
+@app.get("/orders")
+def get_orders():
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, phone, city, product FROM orders ORDER BY id DESC;")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return {
+        "orders": [
+            {
+                "id": r[0],
+                "name": r[1],
+                "phone": r[2],
+                "city": r[3],
+                "product": r[4]
+            }
+            for r in rows
+        ]
+    }
