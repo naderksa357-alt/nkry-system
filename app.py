@@ -1,26 +1,64 @@
-from fastapi import FastAPI, Form, Request
-from twilio.twiml.messaging_response import MessagingResponse
+from fastapi import FastAPI, Form
+from fastapi.responses import HTMLResponse
 import os
 
 app = FastAPI()
 
-@app.post("/whatsapp")
-async def whatsapp_reply(Body: str = Form(...), From: str = Form(...)):
-    # 1. استلام الرسالة من العميل (Body هي نص الرسالة، From هو رقم الجوال)
-    customer_msg = Body
-    customer_phone = From
 
-    # 2. هنا نرسل الرسالة إلى Claude API (منطق شرحبيل)
-    # الوكيل يحلل هل الطلب (طاولة، جهاز بخار، إلخ)
-    ai_response = "أبشر، جاري تحليل طلبك للأثاث.." # استبدل هذا بربط Claude API
+# الصفحة الرئيسية
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """
+    <h1>NKRY Order System</h1>
+    <a href="/order">Create Order</a>
+    """
 
-    # 3. الرد على العميل في الواتساب
-    resp = MessagingResponse()
-    resp.message(f"مرحباً بك في NKRY \n {ai_response}")
-    
-    return str(resp)
 
-@app.get("/")
-def health_check():
-    return {"status": "NKRY System is Online"}
+# صفحة نموذج الطلب
+@app.get("/order", response_class=HTMLResponse)
+def order_form():
+    return """
+    <h2>New Order</h2>
+    <form action="/submit-order" method="post">
+        Name:<br>
+        <input type="text" name="name"><br>
+
+        Phone:<br>
+        <input type="text" name="phone"><br>
+
+        City:<br>
+        <input type="text" name="city"><br>
+
+        Product:<br>
+        <input type="text" name="product"><br><br>
+
+        <button type="submit">Send Order</button>
+    </form>
+    """
+
+
+# استقبال الطلب
+@app.post("/submit-order")
+def submit_order(
+    name: str = Form(...),
+    phone: str = Form(...),
+    city: str = Form(...),
+    product: str = Form(...)
+):
+    print("New Order:", name, phone, city, product)
+
+    return {
+        "status": "Order received",
+        "name": name,
+        "phone": phone,
+        "city": city,
+        "product": product
+    }
+
+
+# تشغيل السيرفر (مهم لـ Railway)
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
     
