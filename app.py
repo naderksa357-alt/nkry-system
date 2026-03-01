@@ -1,27 +1,42 @@
-from fastapi import FastAPI, Form
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 import os
 
-# إنشاء التطبيق
 app = FastAPI()
 
-# الصفحة الرئيسية
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def home():
-    return {"message": "NKRY system is running"}
+    return """
+    <h2>NKRY Order System</h2>
+    <a href='/order'>Create Order</a>
+    """
 
-# حفظ طلب
-@app.post("/submit-order")
-def submit_order(name: str = Form(...), phone: str = Form(...)):
-    return {
-        "status": "saved",
-        "name": name,
-        "phone": phone
-    }
+@app.get("/order", response_class=HTMLResponse)
+def order_form():
+    return """
+    <h2>New Order</h2>
+    <form action="/submit" method="post">
+        Name:<br>
+        <input type="text" name="name"><br>
+        Phone:<br>
+        <input type="text" name="phone"><br>
+        City:<br>
+        <input type="text" name="city"><br>
+        Product:<br>
+        <input type="text" name="product"><br><br>
+        <button type="submit">Send Order</button>
+    </form>
+    """
 
-# تشغيل السيرفر
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
-    
+from fastapi import Form
+
+@app.post("/submit")
+def submit_order(
+    name: str = Form(...),
+    phone: str = Form(...),
+    city: str = Form(...),
+    product: str = Form(...)
+):
+    print("New Order:", name, phone, city, product)
+    return {"status": "Order received"}
     
