@@ -1,18 +1,26 @@
-@app.route('/moyasar-webhook', methods=['POST'])
-def moyasar_webhook():
-    data = request.json
-    # التأكد من نجاح الدفع
-    if data['status'] == 'paid':
-        order_id = data['metadata']['order_id'] # رقم الطلب المخزن
-        
-        # 1. تحديث حالة الطلب في Supabase إلى (تم الدفع - جارِ التنفيذ)
-        supabase.table("orders_agents").update({"status": "Paid"}).eq("id", order_id).execute()
-        
-        # 2. إرسال رسالة واتساب تلقائية للعميل عبر Twilio
-        send_whatsapp_msg(data['metadata']['phone'], "تم استلام مبلغك بنجاح! فريق NKRY بدأ الآن في تجهيز طلبك.")
-        
-        # 3. إرسال إيميل رسمي للعميل يحتوي على الفاتورة وتفاصيل الخشب والمقاسات
-        send_official_email(data['metadata']['email'], "تأكيد طلب أثاث - NKRY")
-        
-    return "OK", 200
+from fastapi import FastAPI, Form, Request
+from twilio.twiml.messaging_response import MessagingResponse
+import os
+
+app = FastAPI()
+
+@app.post("/whatsapp")
+async def whatsapp_reply(Body: str = Form(...), From: str = Form(...)):
+    # 1. استلام الرسالة من العميل (Body هي نص الرسالة، From هو رقم الجوال)
+    customer_msg = Body
+    customer_phone = From
+
+    # 2. هنا نرسل الرسالة إلى Claude API (منطق شرحبيل)
+    # الوكيل يحلل هل الطلب (طاولة، جهاز بخار، إلخ)
+    ai_response = "أبشر، جاري تحليل طلبك للأثاث.." # استبدل هذا بربط Claude API
+
+    # 3. الرد على العميل في الواتساب
+    resp = MessagingResponse()
+    resp.message(f"مرحباً بك في NKRY \n {ai_response}")
+    
+    return str(resp)
+
+@app.get("/")
+def health_check():
+    return {"status": "NKRY System is Online"}
     
