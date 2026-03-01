@@ -5,35 +5,40 @@ import psycopg2
 
 app = FastAPI()
 
-# الاتصال بقاعدة البيانات
+# قراءة رابط قاعدة البيانات من Railway
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-def get_db():
+# الاتصال بقاعدة البيانات
+def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
-# إنشاء جدول إذا لم يكن موجود
+# إنشاء الجدول إذا لم يكن موجود
 def create_table():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS orders (
-        id SERIAL PRIMARY KEY,
-        name TEXT,
-        phone TEXT,
-        city TEXT,
-        product TEXT
-    );
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS orders (
+            id SERIAL PRIMARY KEY,
+            name TEXT,
+            phone TEXT,
+            city TEXT,
+            product TEXT
+        )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print("DB Error:", e)
 
+# إنشاء الجدول عند تشغيل التطبيق
 create_table()
 
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
-    <h1>NKRY Order System</h1>
+    <h2>NKRY Order System</h2>
     <a href="/order">Create Order</a>
     """
 
@@ -61,33 +66,24 @@ def submit_order(
     city: str = Form(...),
     product: str = Form(...)
 ):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO orders (name, phone, city, product) VALUES (%s, %s, %s, %s)",
-        (name, phone, city, product)
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO orders (name, phone, city, product) VALUES (%s, %s, %s, %s)",
+            (name, phone, city, product)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        return {"error": str(e)}
 
     return {
-        "status": "saved",
+        "status": "Order saved",
         "name": name,
         "phone": phone,
         "city": city,
         "product": product
     }
-
-# عرض الطلبات
-@app.get("/orders")
-def list_orders():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM orders ORDER BY id DESC")
-    data = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    return data
     
