@@ -88,3 +88,58 @@ def get_orders():
             for r in rows
         ]
     }
+from fastapi.responses import HTMLResponse
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard():
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, phone, city, product FROM orders ORDER BY id DESC;")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    html = """
+    <html>
+    <head>
+        <title>NKRY Dashboard</title>
+        <style>
+            body {font-family: Arial; padding:20px; background:#f4f4f4;}
+            table {width:100%; border-collapse: collapse; background:white;}
+            th, td {padding:10px; border-bottom:1px solid #ddd;}
+            th {background:black; color:white;}
+            .wa {background:#25D366; color:white; padding:5px 10px; text-decoration:none; border-radius:5px;}
+        </style>
+    </head>
+    <body>
+        <h2>NKRY Orders</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>Product</th>
+                <th>WhatsApp</th>
+            </tr>
+    """
+
+    for r in rows:
+        phone = r[2].replace("0", "966", 1)
+        html += f"""
+        <tr>
+            <td>{r[0]}</td>
+            <td>{r[1]}</td>
+            <td>{r[2]}</td>
+            <td>{r[3]}</td>
+            <td>{r[4]}</td>
+            <td><a class='wa' href='https://wa.me/{phone}' target='_blank'>Contact</a></td>
+        </tr>
+        """
+
+    html += """
+        </table>
+    </body>
+    </html>
+    """
+    return html
