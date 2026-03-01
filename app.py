@@ -51,4 +51,3 @@ def submit_order(
         "product": product
     }
     
-https://raw.githubusercontent.com/OWNER/REPO/BRANCH/app.py
