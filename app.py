@@ -152,3 +152,18 @@ def delete_order(order_id: int):
     cur.close()
     conn.close()
     return {"status": "deleted", "id": order_id}
+from fastapi import Request, HTTPException
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
+
+security = HTTPBasic()
+
+USERNAME = "nkry"
+PASSWORD = "1234"
+
+def check_auth(credentials: HTTPBasicCredentials = security):
+    correct_username = secrets.compare_digest(credentials.username, USERNAME)
+    correct_password = secrets.compare_digest(credentials.password, PASSWORD)
+    if not (correct_username and correct_password):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return credentials.username
