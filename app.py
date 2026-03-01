@@ -143,3 +143,12 @@ def dashboard():
     </html>
     """
     return html
+@app.get("/delete/{order_id}")
+def delete_order(order_id: int):
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    cur.execute("DELETE FROM orders WHERE id = %s", (order_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "deleted", "id": order_id}
