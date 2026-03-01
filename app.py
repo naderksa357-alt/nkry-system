@@ -1,36 +1,37 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse
 import os
 
 app = FastAPI()
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 def home():
-    return """
-    <h2>NKRY Order System</h2>
-    <a href='/order'>Create Order</a>
-    """
+    return {"message": "NKRY system is running"}
+
 
 @app.get("/order", response_class=HTMLResponse)
 def order_form():
     return """
-    <h2>New Order</h2>
-    <form action="/submit" method="post">
-        Name:<br>
-        <input type="text" name="name"><br>
-        Phone:<br>
-        <input type="text" name="phone"><br>
-        City:<br>
-        <input type="text" name="city"><br>
-        Product:<br>
-        <input type="text" name="product"><br><br>
-        <button type="submit">Send Order</button>
-    </form>
+    <html>
+        <body>
+            <h2>NKRY Order Form</h2>
+            <form action="/submit-order" method="post">
+                Name:<br>
+                <input type="text" name="name"><br>
+                Phone:<br>
+                <input type="text" name="phone"><br>
+                City:<br>
+                <input type="text" name="city"><br>
+                Product:<br>
+                <input type="text" name="product"><br><br>
+                <input type="submit" value="Send Order">
+            </form>
+        </body>
+    </html>
     """
 
-from fastapi import Form
 
-@app.post("/submit")
+@app.post("/submit-order")
 def submit_order(
     name: str = Form(...),
     phone: str = Form(...),
@@ -39,4 +40,3 @@ def submit_order(
 ):
     print("New Order:", name, phone, city, product)
     return {"status": "Order received"}
-    
